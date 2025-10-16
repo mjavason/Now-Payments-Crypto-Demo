@@ -3,10 +3,23 @@ import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import 'express-async-errors';
 import morgan from 'morgan';
-import { BASE_URL, PORT } from './constants';
+import { ApiService } from './api.util';
+import {
+  BASE_URL,
+  NOW_PAYMENTS_API_KEY,
+  NOW_PAYMENTS_API_URL,
+  NOW_PAYMENTS_WEBHOOK_URL,
+  PORT,
+} from './constants';
 import { setupSwagger } from './swagger.config';
 
 //#region App Setup
+const nowPaymentsApi = new ApiService(NOW_PAYMENTS_API_URL, {
+  headers: {
+    'x-api-key': NOW_PAYMENTS_API_KEY,
+    'Content-Type': 'application/json',
+  },
+});
 const app = express();
 
 app.use(express.json());
@@ -22,7 +35,120 @@ setupSwagger(app, BASE_URL);
 //#endregion App Setup
 
 //#region Code here
-console.log('Hello world');
+
+/**
+ * @swagger
+ * /payment-link:
+ *   post:
+ *     summary: Creates a payment link users can pay with
+ *     tags: [Now Payments]
+ *     responses:
+ *       '200':
+ *         description: Successful.
+ *       '400':
+ *         description: Bad request.
+ */
+app.post('/payment-link', async (req: Request, res: Response) => {
+  const data = {
+    price_amount: 10,
+    price_currency: 'usd',
+    pay_currency: 'usdt',
+    order_id: 'order_123',
+    order_description: 'Test Order',
+    success_url: NOW_PAYMENTS_WEBHOOK_URL,
+    cancel_url: NOW_PAYMENTS_WEBHOOK_URL,
+  };
+
+  const response = await nowPaymentsApi.post('/invoice', data);
+  if (!response) {
+    return res.status(500).send({
+      success: false,
+      message: 'Failed to create payment link',
+    });
+  }
+
+  return res.status(200).send({
+    success: true,
+    message: 'Payment link created',
+    data: response,
+  });
+});
+
+/**
+ * @swagger
+ * /payment:
+ *   post:
+ *     summary: Creates a payment that users can complete without leaving your website
+ *     tags: [Now Payments]
+ *     responses:
+ *       '200':
+ *         description: Successful payment creation.
+ *       '400':
+ *         description: Bad request.
+ */
+app.post('/payment', async (req: Request, res: Response) => {
+  const data = {
+    price_amount: 100,
+    price_currency: 'usd',
+    pay_currency: 'btc',
+    ipn_callback_url: NOW_PAYMENTS_WEBHOOK_URL,
+    order_id: 'demo-order-123',
+    order_description: 'Demo payment for testing',
+    is_fixed_rate: false,
+    is_fee_paid_by_user: true,
+  };
+
+  const response = await nowPaymentsApi.post('/payment', data);
+  if (!response) {
+    return res.status(500).send({
+      success: false,
+      message: 'Failed to create payment',
+    });
+  }
+
+  return res.status(200).send({
+    success: true,
+    message: 'Payment created successfully',
+    data: response,
+  });
+});
+
+/**
+ * @swagger
+ * /webhook:
+ *   post:
+ *     summary: Webhook for payment status updates
+ *     tags: [Now Payments]
+ *     responses:
+ *       '200':
+ *         description: Successful.
+ *       '400':
+ *         description: Bad request.
+ */
+app.post('/webhook', async (req: Request, res: Response) => {
+  const event = req.body;
+  console.log('Received webhook event:', event);
+
+  // // Handle the webhook event
+  // switch (event.type) {
+  //   case 'payment_succeeded':
+  //     // Handle successful payment
+  //     console.log('Payment succeeded:', event);
+  //     break;
+  //   case 'payment_failed':
+  //     // Handle failed payment
+  //     console.log('Payment failed:', event);
+  //     break;
+  //   default:
+  //     console.log('Unknown event type:', event.type);
+  // }
+
+  return res.status(200).send({
+    success: true,
+    message: 'Webhook received',
+  });
+});
+
 //#endregion
 
 //#region Server Setup
