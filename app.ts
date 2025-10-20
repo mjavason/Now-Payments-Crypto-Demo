@@ -14,6 +14,7 @@ import {
 import { setupSwagger } from './swagger.config';
 import { MinAmountType } from './types/min-amount.type';
 import { PaymentLinkInvoiceType } from './types/payment-link-invoice.type';
+import { WebhookEventType } from './types/webhook-event.type';
 
 //#region App Setup
 const nowPaymentsApi = new ApiService(NOW_PAYMENTS_API_URL, {
@@ -88,10 +89,9 @@ app.post('/payment-link', async (req: Request, res: Response) => {
     price_amount: 4,
     price_currency: 'usd',
     pay_currency: 'usdc',
-    order_id: 'order_123',
+    order_id: new Date().toISOString(),
     order_description: 'Test Order',
-    success_url: NOW_PAYMENTS_WEBHOOK_URL,
-    cancel_url: NOW_PAYMENTS_WEBHOOK_URL,
+    ipn_callback_url: NOW_PAYMENTS_WEBHOOK_URL,
   };
 
   const response = await nowPaymentsApi.post<PaymentLinkInvoiceType | false>('invoice', data);
@@ -124,7 +124,7 @@ app.post('/payment-link', async (req: Request, res: Response) => {
  */
 app.post('/payment', async (req: Request, res: Response) => {
   const data = {
-    price_amount: 1,
+    price_amount: 4,
     price_currency: 'usd',
     pay_currency: 'usdc',
     ipn_callback_url: NOW_PAYMENTS_WEBHOOK_URL,
@@ -160,7 +160,9 @@ app.post('/payment', async (req: Request, res: Response) => {
  *         description: Bad request.
  */
 app.post('/webhook', async (req: Request, res: Response) => {
-  const event = req.body;
+  // GET /webhook?NP_id=5861966740
+
+  const event = req.body as WebhookEventType;
   console.log('Received webhook event:', event);
 
   // // Handle the webhook event

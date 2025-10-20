@@ -18,7 +18,7 @@ export class ApiService {
     data: unknown = null,
     config: AxiosRequestConfig = {},
   ): Promise<T> {
-    console.log(`API Request - Method: ${method}, URL: ${this.baseUrl}/${url}, Data:`, data);
+    // console.log(`API Request - Method: ${method}, URL: ${this.baseUrl}/${url}, Data:`, data);
     try {
       const response: AxiosResponse<T> = await this.api.request({
         method,
