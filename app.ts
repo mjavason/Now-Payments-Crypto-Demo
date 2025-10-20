@@ -12,6 +12,8 @@ import {
   PORT,
 } from './constants';
 import { setupSwagger } from './swagger.config';
+import { MinAmountType } from './types/min-amount.type';
+import { PaymentLinkInvoiceType } from './types/payment-link-invoice.type';
 
 //#region App Setup
 const nowPaymentsApi = new ApiService(NOW_PAYMENTS_API_URL, {
@@ -38,6 +40,39 @@ setupSwagger(app, BASE_URL);
 
 /**
  * @swagger
+ * /min-amount:
+ *   get:
+ *     summary: Retrieves the minimum amount for a specific currency
+ *     tags: [Now Payments]
+ *     responses:
+ *       '200':
+ *         description: Successful.
+ *       '400':
+ *         description: Bad request.
+ */
+app.get('/min-amount', async (req: Request, res: Response) => {
+  const params = {
+    currency_from: 'usdc',
+    // currency_to: 'usdc',
+  };
+  const url = `min-amount?${new URLSearchParams(params).toString()}`;
+
+  const response = await nowPaymentsApi.get<MinAmountType | false>(url);
+  if (!response) {
+    return res.status(500).send({
+      success: false,
+      message: 'Failed to retrieve minimum amount',
+    });
+  }
+  return res.status(200).send({
+    success: true,
+    message: 'Minimum amount retrieved successfully',
+    data: response,
+  });
+});
+
+/**
+ * @swagger
  * /payment-link:
  *   post:
  *     summary: Creates a payment link users can pay with
@@ -50,16 +85,17 @@ setupSwagger(app, BASE_URL);
  */
 app.post('/payment-link', async (req: Request, res: Response) => {
   const data = {
-    price_amount: 10,
+    price_amount: 4,
     price_currency: 'usd',
-    pay_currency: 'usdt',
+    pay_currency: 'usdc',
     order_id: 'order_123',
     order_description: 'Test Order',
     success_url: NOW_PAYMENTS_WEBHOOK_URL,
     cancel_url: NOW_PAYMENTS_WEBHOOK_URL,
   };
 
-  const response = await nowPaymentsApi.post('/invoice', data);
+  const response = await nowPaymentsApi.post<PaymentLinkInvoiceType | false>('invoice', data);
+  console.log('Payment Link Response:', response);
   if (!response) {
     return res.status(500).send({
       success: false,
@@ -88,17 +124,15 @@ app.post('/payment-link', async (req: Request, res: Response) => {
  */
 app.post('/payment', async (req: Request, res: Response) => {
   const data = {
-    price_amount: 100,
+    price_amount: 1,
     price_currency: 'usd',
-    pay_currency: 'btc',
+    pay_currency: 'usdc',
     ipn_callback_url: NOW_PAYMENTS_WEBHOOK_URL,
     order_id: 'demo-order-123',
     order_description: 'Demo payment for testing',
-    is_fixed_rate: false,
-    is_fee_paid_by_user: true,
   };
 
-  const response = await nowPaymentsApi.post('/payment', data);
+  const response = await nowPaymentsApi.post('payment', data);
   if (!response) {
     return res.status(500).send({
       success: false,

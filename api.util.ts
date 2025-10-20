@@ -18,6 +18,7 @@ export class ApiService {
     data: unknown = null,
     config: AxiosRequestConfig = {},
   ): Promise<T> {
+    console.log(`API Request - Method: ${method}, URL: ${this.baseUrl}/${url}, Data:`, data);
     try {
       const response: AxiosResponse<T> = await this.api.request({
         method,
@@ -26,7 +27,7 @@ export class ApiService {
         ...config,
       });
 
-      return response.data;
+      return response?.data;
     } catch (error: any) {
       // console.log(error);
       console.log(error.response.data);
@@ -35,7 +36,7 @@ export class ApiService {
   }
 
   async get<T>(url: string, config: AxiosRequestConfig = {}): Promise<T> {
-    return this.request<T>('GET', url, null, config);
+    return this.request<T>('GET', url, {}, config);
   }
 
   async post<T>(url: string, data: unknown, config: AxiosRequestConfig = {}): Promise<T> {
