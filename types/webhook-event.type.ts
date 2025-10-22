@@ -1,6 +1,11 @@
 export enum PaymentStatusEnum {
   WAITING = 'waiting',
+  CONFIRMING = 'confirming',
+  CONFIRMED = 'confirmed',
+  SENDING = 'sending',
+  PARTIALLY_PAID = 'partially_paid',
   FINISHED = 'finished',
+  FAILED = 'failed',
   EXPIRED = 'expired',
   CANCELED = 'canceled',
 }

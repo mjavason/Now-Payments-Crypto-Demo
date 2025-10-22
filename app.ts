@@ -12,6 +12,7 @@ import {
   PORT,
 } from './constants';
 import { setupSwagger } from './swagger.config';
+import { InHousePaymentType } from './types/in-house-payment.type';
 import { MinAmountType } from './types/min-amount.type';
 import { PaymentLinkInvoiceType } from './types/payment-link-invoice.type';
 import { WebhookEventType } from './types/webhook-event.type';
@@ -74,6 +75,36 @@ app.get('/min-amount', async (req: Request, res: Response) => {
 
 /**
  * @swagger
+ * /payment-status:
+ *   get:
+ *     summary: Get payment status by payment ID
+ *     tags: [Now Payments]
+ *     responses:
+ *       '200':
+ *         description: Successful.
+ *       '400':
+ *         description: Bad request.
+ */
+app.get('/payment-status', async (req: Request, res: Response) => {
+  const paymentId = '5862012542';
+
+  const response = await nowPaymentsApi.get<InHousePaymentType | false>(`payment/${paymentId}`);
+  if (!response) {
+    return res.status(500).send({
+      success: false,
+      message: 'Failed to retrieve payment status',
+    });
+  }
+
+  return res.status(200).send({
+    success: true,
+    message: 'Payment status retrieved successfully',
+    data: response,
+  });
+});
+
+/**
+ * @swagger
  * /payment-link:
  *   post:
  *     summary: Creates a payment link users can pay with
@@ -128,11 +159,11 @@ app.post('/payment', async (req: Request, res: Response) => {
     price_currency: 'usd',
     pay_currency: 'usdc',
     ipn_callback_url: NOW_PAYMENTS_WEBHOOK_URL,
-    order_id: 'demo-order-123',
+    order_id: new Date().toISOString(),
     order_description: 'Demo payment for testing',
   };
 
-  const response = await nowPaymentsApi.post('payment', data);
+  const response = await nowPaymentsApi.post<InHousePaymentType>('payment', data);
   if (!response) {
     return res.status(500).send({
       success: false,

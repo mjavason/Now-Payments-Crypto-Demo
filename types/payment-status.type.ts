@@ -1,0 +1,23 @@
+export type PaymentStatusType = {
+  payment_id: number;
+  invoice_id: number;
+  payment_status: string;
+  pay_address: string;
+  payin_extra_id: string | null;
+  price_amount: number;
+  price_currency: string;
+  pay_amount: number;
+  actually_paid: number;
+  pay_currency: string;
+  order_id: string;
+  order_description: string;
+  purchase_id: number;
+  outcome_amount: number;
+  outcome_currency: string;
+  payout_hash: string | null;
+  payin_hash: string | null;
+  created_at: string;
+  updated_at: string;
+  burning_percent: string | null;
+  type: string;
+};
