@@ -2,6 +2,8 @@
 
 Now payments is a payment gateway that enables users accept crypto currencies like Bitcoin, Ethereum and USDT in real time without manual verification.
 
+<img width="1920" height="1080" alt="Screenshot (293)" src="https://github.com/user-attachments/assets/888f337b-9e8a-44d3-b060-670d5ffe6295" />
+
 **Prerequisites**
 
 - Node.js and npm (or yarn) installed on your system. You can download them from the [official Node.js website](https://nodejs.org).
